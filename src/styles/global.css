@@ -1,0 +1,38 @@
+/* Temporary scaffold colors; replace with Ruth's approved brand palette. */
+:root {
+  font-family: system-ui, sans-serif;
+  color: #32202a;
+  background: #fffaf6;
+  line-height: 1.6;
+  --accent: #811b43;
+  --border: #ddc9d0;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+a { color: var(--accent); text-underline-offset: 0.2em; }
+a:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+.site-header, .site-footer {
+  padding: 1.25rem clamp(1rem, 5vw, 4rem);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.site-header { border-bottom: 1px solid var(--border); }
+.brand { font-size: 1.4rem; font-weight: 750; }
+nav { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; }
+nav a { padding: 0.4rem 0; }
+nav a.active { font-weight: 750; text-decoration-thickness: 3px; }
+.scaffold-notice { padding: 0.75rem 1rem; text-align: center; background: #f3e5ea; }
+.container { width: min(100% - 2rem, 68rem); margin: 2rem auto 4rem; min-height: 60vh; }
+.page-heading { margin-bottom: 2rem; max-width: 48rem; }
+h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.2; margin-bottom: 0.5rem; }
+h2 { font-size: 1.15rem; margin: 0 0 0.5rem; }
+p { margin-top: 0; }
+.component-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: 1rem; }
+.placeholder, .hero { padding: 1.5rem; border: 1px dashed var(--border); border-radius: 0.75rem; background: white; overflow-wrap: anywhere; }
+.placeholder p:last-child { margin-bottom: 0; }
+.site-footer { border-top: 1px solid var(--border); font-size: 0.9rem; }
+.skip-link { position: absolute; left: 1rem; top: -5rem; padding: 0.75rem; background: white; z-index: 10; }
+.skip-link:focus { top: 0.5rem; }
