@@ -1,20 +1,24 @@
-import PageHeading from '../components/common/PageHeading';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import LoginForm from '../components/auth/LoginForm';
-import SignupForm from '../components/auth/SignupForm';
-import PasswordResetForm from '../components/auth/PasswordResetForm';
-
+import { useAuth } from '../context/AuthContext';
 export default function LoginPage() {
+  const { session, isAdmin, loading } = useAuth();
+  const [params] = useSearchParams();
+  const requested = params.get('next');
+  const next =
+    requested?.startsWith('/') && !requested.startsWith('//')
+      ? requested
+      : '/account';
+  if (!loading && session && (next !== '/admin' || isAdmin))
+    return <Navigate to={next} replace />;
   return (
-    <>
-      <PageHeading
-        title="Welcome back"
-        description="Customer sign-in, registration, and account recovery will live here."
-      />
-      <div className="component-grid">
-        <LoginForm />
-        <SignupForm />
-        <PasswordResetForm />
-      </div>
-    </>
+    <div className="login-page page-width">
+      {params.has('error') && (
+        <p className="error" role="alert">
+          Sign-in was not completed. Please try again.
+        </p>
+      )}
+      <LoginForm />
+    </div>
   );
 }

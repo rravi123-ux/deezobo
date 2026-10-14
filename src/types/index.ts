@@ -1,7 +1,9 @@
 // Minimal shared domain types. Expand alongside the implemented schema.
 export type FulfillmentMethod = 'pickup' | 'delivery' | 'event';
-export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled';
-export type PaymentStatus = 'unpaid' | 'pending' | 'paid' | 'failed' | 'refunded';
+export type OrderStatus =
+  'pending' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled';
+export type PaymentStatus =
+  'unpaid' | 'pending' | 'paid' | 'failed' | 'refunded';
 
 export interface Product {
   id: string;

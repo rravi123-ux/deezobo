@@ -1,22 +1,18 @@
 import PageHeading from '../components/common/PageHeading';
 import ContactLinks from '../components/contact/ContactLinks';
 import ContactForm from '../components/contact/ContactForm';
-import EventInquiryForm from '../components/contact/EventInquiryForm';
-import LocationsMap from '../components/contact/LocationsMap';
-
 export default function ContactPage() {
   return (
-    <>
+    <div className="page-shell page-width">
       <PageHeading
-        title="Get in touch"
-        description="Reach Ruth, ask about an order, or plan drinks for an event."
+        eyebrow="We’d love to hear from you"
+        title="Let’s pour something special."
+        description="A bottle for yourself, a gathering to remember, or an idea all your own. Tell us what you have in mind."
       />
-      <div className="component-grid">
+      <div className="contact-grid">
         <ContactLinks />
         <ContactForm />
-        <EventInquiryForm />
-        <LocationsMap />
       </div>
-    </>
+    </div>
   );
 }

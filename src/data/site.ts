@@ -1,11 +1,11 @@
-// Only details supplied in the client brief. Confirm before public launch.
+// Contact page (p. 8) of the updated 2026 brochure; email confirmed by the client.
 export const site = {
   name: 'Dee Zobo',
   founder: 'Ruth',
   email: 'info.deezobo@gmail.com',
-  instagramUrl: 'https://www.instagram.com/deezobo/',
-  // Confirm the country code before adding telephone or WhatsApp links.
-  phoneE164: null,
-  whatsappUrl: null,
-  // Keep the private home pickup address out of frontend source and public maps.
+  instagramUrl: 'https://www.instagram.com/dee_zobo/',
+  instagramHandle: '@dee_zobo',
+  phoneDisplay: '(301) 256-8049',
+  phoneE164: '+13012568049',
+  tagline: 'Rooted in tradition. Bottled for today.',
 } as const;

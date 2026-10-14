@@ -1,37 +1,28 @@
-# Minimal Supabase plan
+# Supabase scope
 
-This is a design outline, not an applied migration. It deliberately reduces the
-attached enterprise-sized dataset to the website's first-release needs.
+## Implemented by this branch's migrations
 
-| Table | Keep initially |
-| --- | --- |
-| profiles | Auth user reference, name, contact email, phone |
-| user_roles | Auth user reference, owner/admin role; server-managed |
-| products | Name, description, image, approved ingredients/nutrition, active flag |
-| product_variants | Product reference, size label, price in minor units, currency, active flag |
-| orders | Customer reference, contact/fulfillment snapshots, order and payment status, server-calculated totals, timestamps |
-| order_items | Order/variant references, purchased name/size/price snapshots, quantity |
-| promotions | Code, discount definition, start/end, active flag |
-| promotion_products | Promotion/product references defining eligible drinks |
-| inquiries | Name, reply channel, message, optional event details, follow-up status |
-| events | Public pop-up name, time, approved public location, published flag |
+| Table         | Purpose                                                                                                |
+| ------------- | ------------------------------------------------------------------------------------------------------ |
+| user_roles    | Server-managed owner/admin assignment by Auth UUID, with active flag                                   |
+| products      | Drink metadata, flavor notes, image, category, published/featured flags and display size/price options |
+| gallery_items | Image URL, caption, category, display order and publication state                                      |
 
-Use IDs and timestamps where appropriate. Keep the cart in browser state/storage;
-do not add cart tables at this stage. Expand only when an implemented feature needs it.
+The `is_deezobo_admin()` function checks the caller's role in a protected table.
+Public queries see only published products/gallery images. Admins can read drafts
+and create/update rows. There are no client permissions for granting roles.
+Price-option JSON is validated in PostgreSQL.
 
-Implementation boundaries:
+Options remain in the product row for simple catalog editing. The cart uses those
+stable product and option IDs locally, then prepares an email request. It does not
+create database orders or collect payment.
 
-- Supabase Auth owns credentials; no password columns or browser-assigned admin roles.
-- Add RLS and explicit grants with the first migration, before exposing customer data.
-- Authorize customer reads and admin writes on the server. A React route guard alone
-  does not protect data.
-- Validate prices, quantities, promotions, fulfillment, and totals on the server.
-  Never accept browser-supplied paid status. Preserve order item snapshots.
-- Keep home pickup details and internal admin notes out of public queries and maps.
-- Leave unknown prices, recipes, nutrition, delivery areas and fees unset until approved.
-- Keep Square secrets server-side. Implement signed, idempotent payment processing
-  before recording a successful payment.
+## Deferred commerce extensions
 
-Defer quote versioning, refunds ledgers, inventory, production reporting, notification
-queues and retail stockists until those features are scoped. Refunds/reconciliation
-must be designed before real payments go live. No supermarket listings are assumed.
+Versioned product variants, orders, immutable order items, online checkout,
+promotions and eligibility, delivery fees, taxes, inquiries, and events remain
+planned. Supabase Auth owns credentials. Do not store passwords, trust browser
+totals, or expose private pickup details.
+
+See [admin setup](admin-setup.md) before applying the migration. No schema change
+has been executed against the live Supabase project by this branch.
