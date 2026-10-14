@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import SiteLayout from './components/layout/SiteLayout';
 import RequireAdmin from './components/auth/RequireAdmin';
+import RequireAuth from './components/auth/RequireAuth';
 import HomePage from './pages/HomePage';
 import OrderPage from './pages/OrderPage';
 import CartPage from './pages/CartPage';
@@ -27,7 +28,9 @@ export default function App() {
         <Route path="signin" element={<Navigate to="/login" replace />} />
         <Route path="about" element={<AboutPage />} />
         <Route path="newsletter" element={<Navigate to="/about" replace />} />
-        <Route path="account" element={<AccountPage />} />
+        <Route element={<RequireAuth />}>
+          <Route path="account" element={<AccountPage />} />
+        </Route>
         <Route element={<RequireAdmin />}>
           <Route path="admin" element={<AdminPage />} />
         </Route>

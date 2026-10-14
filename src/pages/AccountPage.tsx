@@ -1,15 +1,36 @@
 import { Link } from 'react-router-dom';
 import PageHeading from '../components/common/PageHeading';
+import { useAuth } from '../context/AuthContext';
+import { signOut } from '../services/auth';
+
 export default function AccountPage() {
+  const { session, isAdmin } = useAuth();
   return (
     <div className="page-shell page-width">
       <PageHeading
-        title="Here to help with your order."
-        description="Customer order history is coming later. For now, contact Ruth directly for order updates or to place another request."
+        eyebrow={session?.user.email ?? undefined}
+        title="Your Dee Zobo account."
+        description="Browse the menu, build a selection, or contact Dee Zobo about an existing request."
       />
-      <Link className="button" to="/contact">
-        Contact Dee Zobo ↗
-      </Link>
+      <div className="button-row">
+        <Link className="button" to="/order">
+          Shop drinks ↗
+        </Link>
+        <Link className="button button-outline" to="/contact">
+          Contact Dee Zobo
+        </Link>
+        {isAdmin && (
+          <Link className="button button-outline" to="/admin">
+            Open admin
+          </Link>
+        )}
+        <button
+          className="button button-outline"
+          onClick={() => void signOut()}
+        >
+          Sign out
+        </button>
+      </div>
     </div>
   );
 }

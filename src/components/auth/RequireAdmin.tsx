@@ -9,8 +9,9 @@ export default function RequireAdmin() {
         <p role="status">Verifying access…</p>
       </div>
     );
-  if (!session) return <Navigate to="/login" replace />;
-  if (!isAdmin) return <Navigate to="/login?access=required" replace />;
+  if (!session) return <Navigate to="/login?next=%2Fadmin" replace />;
+  if (!isAdmin)
+    return <Navigate to="/login?access=required&next=%2Fadmin" replace />;
   if (error)
     return (
       <div className="page-shell">

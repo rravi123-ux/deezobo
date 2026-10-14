@@ -1,11 +1,15 @@
 import { supabase } from '../lib/supabase';
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(next = '/account') {
   if (!supabase)
     throw new Error('Sign-in is not configured yet. Please contact Dee Zobo.');
+  const safeNext =
+    next.startsWith('/') && !next.startsWith('//') ? next : '/account';
+  const callback = new URL('/login', window.location.origin);
+  callback.searchParams.set('next', safeNext);
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin + '/login' },
+    options: { redirectTo: callback.toString() },
   });
   if (error) throw error;
 }

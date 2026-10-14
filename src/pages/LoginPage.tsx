@@ -2,9 +2,15 @@ import { Navigate, useSearchParams } from 'react-router-dom';
 import LoginForm from '../components/auth/LoginForm';
 import { useAuth } from '../context/AuthContext';
 export default function LoginPage() {
-  const { isAdmin, loading } = useAuth();
+  const { session, isAdmin, loading } = useAuth();
   const [params] = useSearchParams();
-  if (!loading && isAdmin) return <Navigate to="/admin" replace />;
+  const requested = params.get('next');
+  const next =
+    requested?.startsWith('/') && !requested.startsWith('//')
+      ? requested
+      : '/account';
+  if (!loading && session && (next !== '/admin' || isAdmin))
+    return <Navigate to={next} replace />;
   return (
     <div className="login-page page-width">
       {params.has('error') && (

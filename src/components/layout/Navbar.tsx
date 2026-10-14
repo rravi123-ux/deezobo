@@ -13,7 +13,7 @@ const links = [
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const { count } = useCart();
-  const { isAdmin } = useAuth();
+  const { session, isAdmin } = useAuth();
   return (
     <header className="site-header">
       <div className="nav-inner">
@@ -55,6 +55,12 @@ export default function Navbar() {
               Manage
             </NavLink>
           )}
+          <NavLink
+            to={session ? '/account' : '/login'}
+            onClick={() => setOpen(false)}
+          >
+            {session ? 'Account' : 'Sign in'}
+          </NavLink>
           <NavLink
             className="nav-basket"
             to="/cart"
