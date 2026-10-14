@@ -1022,6 +1022,15 @@ fieldset {
 .admin-card h3 {
   margin-block: 8px;
 }
+.admin-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.danger-link {
+  color: #8b2525;
+}
 .admin-form > fieldset,
 form > fieldset:disabled {
   border: 0;

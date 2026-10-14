@@ -119,3 +119,18 @@ export async function saveGalleryImage(image: GalleryImage) {
       'Image was not saved. Check your admin access and try again.',
     );
 }
+
+export async function deleteProduct(id: string) {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { error } = await supabase.from('products').delete().eq('id', id);
+  if (error)
+    throw new Error(
+      'The drink could not be deleted. It may be used by an order.',
+    );
+}
+
+export async function deleteGalleryImage(id: string) {
+  if (!supabase) throw new Error('Supabase is not configured.');
+  const { error } = await supabase.from('gallery_items').delete().eq('id', id);
+  if (error) throw new Error('The gallery image could not be deleted.');
+}

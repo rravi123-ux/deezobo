@@ -3,7 +3,11 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCatalog } from '../context/CatalogContext';
 import { signOut } from '../services/auth';
-import { fetchCatalog } from '../services/products';
+import {
+  deleteGalleryImage,
+  deleteProduct,
+  fetchCatalog,
+} from '../services/products';
 import type { Beverage, GalleryImage } from '../types/catalog';
 import ProductEditor from '../components/admin/ProductEditor';
 import GalleryEditor from '../components/admin/GalleryEditor';
@@ -46,6 +50,32 @@ export default function AdminPage() {
       await signOut();
     } catch {
       setError('Sign-out failed. Please try again.');
+    }
+  }
+  async function removeProduct(id: string, name: string) {
+    if (!window.confirm(`Delete ${name}? This cannot be undone.`)) return;
+    setError('');
+    try {
+      await deleteProduct(id);
+      setMessage('Drink deleted.');
+      await Promise.all([load(), refresh()]);
+    } catch (reason) {
+      setError(
+        reason instanceof Error ? reason.message : 'Could not delete drink.',
+      );
+    }
+  }
+  async function removeImage(id: string, caption: string) {
+    if (!window.confirm(`Delete “${caption}” from the gallery?`)) return;
+    setError('');
+    try {
+      await deleteGalleryImage(id);
+      setMessage('Gallery image deleted.');
+      await Promise.all([load(), refresh()]);
+    } catch (reason) {
+      setError(
+        reason instanceof Error ? reason.message : 'Could not delete image.',
+      );
     }
   }
   return (
@@ -149,15 +179,23 @@ export default function AdminPage() {
                           {p.featured ? ' · Featured' : ''}
                         </span>
                         <h3>{p.name}</h3>
-                        <button
-                          className="text-link"
-                          onClick={() => {
-                            setMessage('');
-                            setEditingProduct(p);
-                          }}
-                        >
-                          Edit drink →
-                        </button>
+                        <div className="admin-card-actions">
+                          <button
+                            className="text-link"
+                            onClick={() => {
+                              setMessage('');
+                              setEditingProduct(p);
+                            }}
+                          >
+                            Edit drink →
+                          </button>
+                          <button
+                            className="text-link danger-link"
+                            onClick={() => void removeProduct(p.id, p.name)}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
                     </article>
                   ))
@@ -170,15 +208,23 @@ export default function AdminPage() {
                           {i.displayOrder}
                         </span>
                         <h3>{i.caption}</h3>
-                        <button
-                          className="text-link"
-                          onClick={() => {
-                            setMessage('');
-                            setEditingImage(i);
-                          }}
-                        >
-                          Edit image →
-                        </button>
+                        <div className="admin-card-actions">
+                          <button
+                            className="text-link"
+                            onClick={() => {
+                              setMessage('');
+                              setEditingImage(i);
+                            }}
+                          >
+                            Edit image →
+                          </button>
+                          <button
+                            className="text-link danger-link"
+                            onClick={() => void removeImage(i.id, i.caption)}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
                     </article>
                   ))}
