@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import type { GalleryImage } from '../../types/catalog';
 import { saveGalleryImage } from '../../services/products';
+import { uploadCatalogImage } from '../../services/media';
 import Modal from '../common/Modal';
 export default function GalleryEditor({
   image,
@@ -15,12 +16,16 @@ export default function GalleryEditor({
   const [draft, setDraft] = useState(image);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
     setError('');
     try {
-      await saveGalleryImage(draft);
+      const imageUrl = imageFile
+        ? await uploadCatalogImage(imageFile, 'gallery')
+        : draft.imageUrl;
+      await saveGalleryImage({ ...draft, imageUrl });
       onSaved();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not save image.');
@@ -40,10 +45,18 @@ export default function GalleryEditor({
           <label htmlFor="gallery-url">Image URL or /images/ path</label>
           <input
             id="gallery-url"
-            required
+            required={!imageFile}
             value={draft.imageUrl}
             onChange={(e) => setDraft({ ...draft, imageUrl: e.target.value })}
           />
+          <label htmlFor="gallery-file">Or upload a gallery image</label>
+          <input
+            id="gallery-file"
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
+          />
+          <p className="fine-print">JPG, PNG, WebP, or GIF. Maximum 8 MB.</p>
           <label htmlFor="gallery-caption">Caption and image description</label>
           <input
             id="gallery-caption"
@@ -103,7 +116,11 @@ export default function GalleryEditor({
             </p>
           )}
           <button className="button" disabled={busy}>
-            {busy ? 'Saving…' : 'Save image'}
+            {busy
+              ? imageFile
+                ? 'Uploading & saving…'
+                : 'Saving…'
+              : 'Save image'}
           </button>
         </fieldset>
       </form>

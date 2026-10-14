@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import type { Beverage } from '../../types/catalog';
 import { saveProduct } from '../../services/products';
+import { uploadCatalogImage } from '../../services/media';
 import Modal from '../common/Modal';
 export default function ProductEditor({
   product,
@@ -15,6 +16,7 @@ export default function ProductEditor({
   const [draft, setDraft] = useState(product);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const patch = (values: Partial<Beverage>) =>
     setDraft((p) => ({ ...p, ...values }));
   async function save(event: FormEvent<HTMLFormElement>) {
@@ -22,7 +24,10 @@ export default function ProductEditor({
     setBusy(true);
     setError('');
     try {
-      await saveProduct(draft);
+      const imageUrl = imageFile
+        ? await uploadCatalogImage(imageFile, 'products')
+        : draft.imageUrl;
+      await saveProduct({ ...draft, imageUrl });
       onSaved();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not save product.');
@@ -76,10 +81,18 @@ export default function ProductEditor({
           <label htmlFor="product-image">Image URL or /images/ path</label>
           <input
             id="product-image"
-            required
+            required={!imageFile}
             value={draft.imageUrl}
             onChange={(e) => patch({ imageUrl: e.target.value })}
           />
+          <label htmlFor="product-image-file">Or upload a product image</label>
+          <input
+            id="product-image-file"
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
+          />
+          <p className="fine-print">JPG, PNG, WebP, or GIF. Maximum 8 MB.</p>
           <label htmlFor="product-alt">Image description</label>
           <input
             id="product-alt"
@@ -198,7 +211,11 @@ export default function ProductEditor({
             </p>
           )}
           <button className="button" disabled={busy}>
-            {busy ? 'Saving…' : 'Save drink'}
+            {busy
+              ? imageFile
+                ? 'Uploading & saving…'
+                : 'Saving…'
+              : 'Save drink'}
           </button>
         </fieldset>
       </form>
