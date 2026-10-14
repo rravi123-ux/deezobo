@@ -1,6 +1,6 @@
 # Supabase scope
 
-## Implemented by this branch's migration
+## Implemented by this branch's migrations
 
 | Table         | Purpose                                                                                                |
 | ------------- | ------------------------------------------------------------------------------------------------------ |
@@ -13,15 +13,16 @@ Public queries see only published products/gallery images. Admins can read draft
 and create/update rows. There are no client permissions for granting roles.
 Price-option JSON is validated in PostgreSQL.
 
-This is a display catalog with an inquiry cart, not a commerce schema. Options are
-kept in the product row for simple catalog editing. Future checkout should promote
-them into versioned variants and always revalidate money on the server.
+Options remain in the product row for simple catalog editing. The cart uses those
+stable product and option IDs locally, then prepares an email request. It does not
+create database orders or collect payment.
 
-## Deferred for online ordering
+## Deferred commerce extensions
 
-Profiles, purchasable variants, orders, immutable order items, promotions and
-eligibility, inquiries and events remain planned. Supabase Auth owns credentials.
-Do not store passwords, trust browser totals, or expose private pickup details.
+Versioned product variants, orders, immutable order items, online checkout,
+promotions and eligibility, delivery fees, taxes, inquiries, and events remain
+planned. Supabase Auth owns credentials. Do not store passwords, trust browser
+totals, or expose private pickup details.
 
 See [admin setup](admin-setup.md) before applying the migration. No schema change
 has been executed against the live Supabase project by this branch.

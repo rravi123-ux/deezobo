@@ -15,9 +15,10 @@ npm run dev
 ```
 
 Public pages work without credentials using the bundled brochure menu. To enable
-Google admin sign-in and editable catalog/gallery data, follow
+Google sign-in, editable catalog/gallery data, and image uploads, follow
 [admin setup](docs/admin-setup.md). Supabase credentials stay in ignored
-`.env.local` or `.env`; `.env.example` contains names only.
+`.env.local` or `.env`; `.env.example` contains the public project URL and
+variable names, without credentials.
 
 ## Pages
 
@@ -29,9 +30,9 @@ Google admin sign-in and editable catalog/gallery data, follow
 | /about   | Ruth's story, mission and values (replaces Newsletter)          |
 | /contact | Contact channels and event/general email draft form             |
 | /cart    | Locally saved selection and an order-request email draft        |
-| /login   | Google sign-in for authorized administrators                    |
-| /admin   | Protected drink/gallery editor                                  |
-| /account | Customer-order support handoff; order history is deferred       |
+| /login   | Google sign-in for customers and authorized administrators      |
+| /admin   | Protected drink, gallery, and image-upload manager              |
+| /account | Signed-in customer account links                                |
 
 Compatibility routes: `/products` → `/order`, `/contacts` → `/contact`,
 `/signin` → `/login`, `/newsletter` → `/about`.
@@ -39,14 +40,16 @@ Compatibility routes: `/products` → `/order`, `/contacts` → `/contact`,
 ## Boundaries
 
 - No payment or order is created by the website yet. Email drafts must be sent
-  in the user's email app. Final price, availability and fulfillment are confirmed
-  directly by Ruth.
+  in the user's email app. Final price, availability, and fulfillment are
+  confirmed directly by Ruth.
 - Admin permissions are enforced by RLS and a protected role table. A successful
   Google sign-in does not make an ordinary customer an admin.
-- The migration and brochure seed are supplied, not applied to a live project.
+- Supabase migrations are supplied in the repository; follow the setup guide to
+  apply them to the target project.
 - Images are extracted from the supplied brochure. Unknown nutrition/allergen
   data, supermarket locations and delivery promises are not invented.
-- Future order, payment, promotion and customer-account modules remain scaffolded.
+- Online ordering, promotions, delivery pricing, taxes, and automated fulfillment
+  remain future work.
 
 See [adaptation map and content sources](docs/fwwill-adaptation.md),
 [database scope](docs/schema.md) and [remaining requirements](docs/requirements.md).
@@ -66,5 +69,5 @@ Browser checks use mocked backend responses and a fresh browser profile; no
 messages are sent and no live database writes are made. Unit tests include
 in-memory PostgreSQL RLS checks. Screenshots go to `/tmp/deezobo-qa`.
 
-For hosting, configure SPA fallback to `index.html`. No deployment is made by
-this branch. The existing noindex tag remains until the owner approves launch.
+For future hosting, configure the SPA to fall back to `index.html`. The existing
+noindex tag remains until the owner approves launch.

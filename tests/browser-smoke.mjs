@@ -211,7 +211,7 @@ try {
   // A localStorage flag from the reference app must not unlock administration.
   await page.evaluate(() => localStorage.setItem('isAdmin', 'true'));
   await page.goto(base + '/admin');
-  await page.waitForURL('**/login');
+  await page.waitForURL((url) => url.pathname === '/login');
   assert.equal(
     await page.getByRole('heading', { name: 'Welcome back.' }).count(),
     0,
@@ -259,11 +259,20 @@ try {
     const ordinary = await contextWithRole('customer', true);
     const customer = await ordinary.newPage();
     await customer.goto(base + '/admin', { waitUntil: 'networkidle' });
-    await customer.waitForURL('**/login?access=required');
+    await customer.waitForURL(
+      (url) =>
+        url.pathname === '/login' &&
+        url.searchParams.get('access') === 'required' &&
+        url.searchParams.get('next') === '/admin',
+    );
     await customer
       .getByText('This account does not have administrator access.', {
         exact: false,
       })
+      .waitFor();
+    await customer.goto(base + '/account', { waitUntil: 'networkidle' });
+    await customer
+      .getByRole('heading', { name: 'Your Dee Zobo account.' })
       .waitFor();
     await ordinary.close();
     const admin = await contextWithRole('admin', true);
@@ -273,6 +282,19 @@ try {
       .getByRole('heading', { name: 'Your drinks', exact: true })
       .waitFor();
     assert.equal(await manager.locator('.admin-card').count(), 7);
+    await manager.getByRole('button', { name: 'Add drink' }).click();
+    await manager.getByLabel('Name', { exact: true }).fill('Test infusion');
+    await manager
+      .getByLabel('Description', { exact: true })
+      .fill('A temporary test drink.');
+    await manager
+      .getByLabel('Image URL or /images/ path')
+      .fill('/images/brochure/bottled-zobo.jpg');
+    await manager.getByLabel('Image description').fill('Test bottles');
+    await manager
+      .getByRole('button', { name: 'Save drink', exact: true })
+      .click();
+    await manager.getByText('Saved successfully.', { exact: true }).waitFor();
     await manager.getByRole('button', { name: 'Edit drink' }).first().click();
     await manager.getByLabel('Name', { exact: true }).fill('Updated drink');
     await manager
@@ -281,6 +303,17 @@ try {
     await manager.getByText('Saved successfully.', { exact: true }).waitFor();
     await manager.getByRole('button', { name: 'Gallery', exact: true }).click();
     assert.equal(await manager.locator('.admin-card').count(), 6);
+    await manager.getByRole('button', { name: 'Add image' }).click();
+    await manager
+      .getByLabel('Image URL or /images/ path')
+      .fill('/images/brochure/mocktail-event.png');
+    await manager
+      .getByLabel('Caption and image description')
+      .fill('Test gallery image');
+    await manager
+      .getByRole('button', { name: 'Save image', exact: true })
+      .click();
+    await manager.getByText('Saved successfully.', { exact: true }).waitFor();
     await manager.screenshot({
       path: '/tmp/deezobo-qa/admin-desktop.png',
       fullPage: true,
@@ -289,7 +322,7 @@ try {
   }
   assert.deepEqual(errors, []);
   console.log(
-    'PASS: menu search/filter, product selection, basket persistence, email draft, gallery keyboard/focus, About redirect, admin guard/roles/edit, mobile navigation, images and overflow.',
+    'PASS: menu search/filter, product selection, basket persistence, order email, gallery keyboard/focus, About redirect, account/admin guards, admin add/edit, mobile navigation, images and overflow.',
   );
 } finally {
   await browser.close();

@@ -1,15 +1,17 @@
 # Admin sign-in and catalog setup
 
-This branch adds Supabase Google sign-in, an admin route guard, catalog/gallery
-editors and database-enforced permissions. No production database migration or
-provider configuration has been applied by this change.
+This branch adds customer and admin Google sign-in, catalog/gallery editors,
+and Supabase Storage uploads. Production migrations and provider settings must
+still be applied to the target services.
 
 1. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in `.env.local`
    (the existing ignored `.env` also works). Use the project's public publishable
    key, never a secret/service-role key.
 2. Inspect the project's existing schema. On a fresh project, apply
    `supabase/migrations/202610010001_catalog_admin.sql`, followed by
-   `202610010002_brochure_catalog.sql` in order using the Supabase SQL editor.
+   `202610010002_brochure_catalog.sql` and
+   `202610140001_catalog_deletion.sql` and
+   `202610140002_catalog_storage.sql` in order using the Supabase SQL editor.
    If `products`, `gallery_items`, or `user_roles` already exist, reconcile them
    with this migration rather than dropping existing data.
 3. Enable Google under Supabase Authentication > Providers. Configure the Google
@@ -23,10 +25,9 @@ insert into public.user_roles (auth_user_id, role)
 values ('REPLACE_WITH_AUTH_USER_UUID', 'owner');
 ```
 
-5. Visit `/login` again. An authorized account reaches `/admin`, where it can
-   create/edit drinks, sizes, display prices, featured status, gallery captions,
-   publication state and display order. Images use existing `/images/` paths or
-   HTTPS URLs; this branch does not implement file uploads.
+5. Visit `/login?next=/admin` again. An authorized account reaches `/admin`,
+   where it can create/edit drinks, sizes, display prices, featured status,
+   gallery captions, publication state, display order, and upload images.
 6. Test an ordinary signed-in account as well: it must not see draft content or
    be able to write to either catalog table. Removing/deactivating its role
    immediately blocks writes through RLS even with a stale browser session.
@@ -39,11 +40,13 @@ password.
 The public pages fall back to the bundled brochure catalog if the database is
 unavailable and label it as the 2026 brochure menu. A successful live query with
 zero products stays empty. Saved admin changes refresh the current public catalog.
-Images can be unpublished and products made inactive instead of deleting them.
+Images can be unpublished and products made inactive or deleted. Uploaded files
+stay in the media bucket if a catalog row is deleted so another row using the same
+URL is not broken; remove unused files separately in Supabase Storage.
 
-The cart is an **inquiry selection**, stored locally by stable product/size IDs.
-Prices shown come from the current loaded catalog; no order or payment is created.
-Contact and order forms prepare email drafts. They never claim a message was sent.
+The cart is stored locally by stable product/size IDs and prepares an email draft
+for the customer to send. It does not create an order or collect payment. The
+contact form also prepares an email draft and does not claim that a message was sent.
 
 Setup references: [Google sign-in](https://supabase.com/docs/guides/auth/social-login/auth-google)
 and [row-level security](https://supabase.com/docs/guides/database/postgres/row-level-security).
