@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { useCatalog } from '../context/CatalogContext';
 import { emailDraft, money } from '../lib/catalog';
 import { site } from '../data/site';
+import { updateOrders } from '../services/orders';
 
 export default function CartPage() {
   const { items, update, remove } = useCart();
@@ -154,13 +155,14 @@ export default function CartPage() {
                 Remove unavailable items before preparing your request.
               </p>
             ) : (
-              <a
-                href={draft}
-                className="button full-width"
-                onClick={() => setPrepared(true)}
-              >
-                Prepare order email ↗
-              </a>
+            //   <a
+            //     href={draft}
+            //     className="button full-width"
+            //     onClick={() => setPrepared(true)}
+            //   >
+            //     Prepare order email ↗
+            //   </a>
+            <button type="button" onClick={() => {updateOrders(items, total)}}>Place Order</button>
             )}
             <p className="fine-print">
               This opens your email app. Send the draft there to request your
