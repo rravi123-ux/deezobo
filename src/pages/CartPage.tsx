@@ -162,7 +162,7 @@ export default function CartPage() {
             //   >
             //     Prepare order email ↗
             //   </a>
-            <button type="button" onClick={() => {updateOrders(items, total)}}>Place Order</button>
+            <a type="button" href={draft} onClick={() => {updateOrders(items, total)}}>Place Order</a>
             )}
             <p className="fine-print">
               This opens your email app. Send the draft there to request your
