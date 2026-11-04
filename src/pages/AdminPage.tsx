@@ -11,13 +11,14 @@ import {
 import type { Beverage, GalleryImage } from '../types/catalog';
 import ProductEditor from '../components/admin/ProductEditor';
 import GalleryEditor from '../components/admin/GalleryEditor';
+import OrderManager from '../components/admin/OrderManager';
 
 export default function AdminPage() {
   const { session } = useAuth();
   const { refresh } = useCatalog();
   const [products, setProducts] = useState<Beverage[]>([]);
   const [gallery, setGallery] = useState<GalleryImage[]>([]);
-  const [tab, setTab] = useState<'products' | 'gallery'>('products');
+  const [tab, setTab] = useState<'products' | 'gallery' | 'orders'>('products');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -106,13 +107,22 @@ export default function AdminPage() {
           >
             Gallery
           </button>
+          <button
+            className={tab === 'orders' ? 'selected' : ''}
+            aria-pressed={tab === 'orders'}
+            onClick={() => setTab('orders')}
+          >
+            Orders
+          </button>
         </div>
-        <Link
-          className="text-link"
-          to={tab === 'products' ? '/order' : '/gallery'}
-        >
-          View public page ↗
-        </Link>
+        {tab !== 'orders' && (
+          <Link
+            className="text-link"
+            to={tab === 'products' ? '/order' : '/gallery'}
+          >
+            View public page ↗
+          </Link>
+        )}
       </div>
       {message && (
         <p className="success" role="status">
@@ -133,7 +143,15 @@ export default function AdminPage() {
       {loading ? (
         <p role="status">Loading your content…</p>
       ) : (
-        !error && (
+        !error &&
+        (tab === 'orders' ? (
+          <>
+            <div className="section-heading">
+              <h2>Stripe orders</h2>
+            </div>
+            <OrderManager />
+          </>
+        ) : (
           <>
             <div className="section-heading">
               <h2>{tab === 'products' ? 'Your drinks' : 'Your gallery'}</h2>
@@ -236,7 +254,7 @@ export default function AdminPage() {
               </p>
             )}
           </>
-        )
+        ))
       )}
       {editingProduct && (
         <ProductEditor

@@ -13,7 +13,7 @@ the reference project's independent React app and server are not copied wholesal
 | Contact information and mailto form                              | Dee Zobo contact channels, event details, explicit email-draft flow                  |
 | Google admin sign-in                                             | Supabase PKCE with a server-managed role check and protected route                   |
 | Admin products/gallery                                           | Create/edit, publish/unpublish, feature drinks, set sizes/prices and gallery order   |
-| Cart context                                                     | Namespaced local selection with stable IDs and validation; request quote by email    |
+| Cart context                                                     | Namespaced local selection with server-priced Stripe Checkout and signed status sync |
 | Responsive navigation/footer                                     | Dee Zobo palette and wordmark, menu toggle and selection count                       |
 
 Source content: user-provided **Dee Zobo Brochure (Updated 2026).pdf**, 9 pages.

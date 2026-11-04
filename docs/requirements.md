@@ -1,8 +1,9 @@
 # Current scope and remaining decisions
 
 Implemented: welcome, drinks menu, product details, image gallery, About us,
-contact/email drafts, local cart, customer/admin Google sign-in, protected
-catalog/gallery editors, and image uploads.
+contact/email drafts, local cart, Stripe-hosted checkout and receipts,
+customer/admin Google sign-in, protected catalog/gallery editors, image uploads,
+and customer/admin order views.
 See [adaptation notes](fwwill-adaptation.md) for the source
 mapping and content decisions.
 
@@ -16,10 +17,11 @@ Before accepting production orders, confirm:
 - Bottle availability, preparation lead times, delivery eligibility/fees and pickup windows.
 - Complete ingredients, allergens, storage/shelf life and verified numeric nutrition.
 - Google customer sign-in copy and the support process for account access.
-- Payment provider, refunds, taxes, delivery charges, terms, and cancellation policies.
+- Refund, tax, delivery-charge, terms, and cancellation policies before live mode.
 - Promotion rules, custom event quantities/presentation, and contact data retention.
 - Domain and hosting ownership, final logo usage and public launch approval.
 
 Google provider setup, redirect URLs, migrations, and administrator role
-provisioning are described in admin-setup.md. The current cart and contact form
-prepare email drafts and are not stored as orders.
+provisioning are described in admin-setup.md. Stripe deployment and account-owner
+steps are described in stripe-setup.md. The contact form still prepares an email
+draft; completed checkout orders are stored in Supabase.

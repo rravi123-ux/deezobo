@@ -5,7 +5,7 @@ export default function PaymentSection() {
   return (
     <Placeholder
       title="Checkout & payment"
-      description="Connect a server-created Square checkout after validating products, promotions and fulfillment."
+      description="Stripe Checkout is created server-side from current Supabase prices and reconciled through signed webhooks."
     />
   );
 }

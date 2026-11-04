@@ -50,6 +50,12 @@ async function contextWithRole(role = 'guest', liveCatalog = false) {
       const url = new URL(route.request().url());
       if (url.pathname.endsWith('/rpc/is_deezobo_admin'))
         return route.fulfill({ json: role === 'admin' });
+      if (url.pathname.endsWith('/functions/v1/create-checkout'))
+        return route.fulfill({
+          json: { url: 'https://checkout.stripe.com/c/pay/cs_test_example' },
+        });
+      if (url.pathname.endsWith('/functions/v1/checkout-status'))
+        return route.fulfill({ json: { state: 'paid' } });
       if (url.pathname.endsWith('/products')) {
         if (!liveCatalog)
           return route.fulfill({
@@ -60,6 +66,7 @@ async function contextWithRole(role = 'guest', liveCatalog = false) {
           return route.fulfill({ status: 201, json: [] });
         return route.fulfill({ json: products });
       }
+      if (url.pathname.endsWith('/orders')) return route.fulfill({ json: [] });
       if (url.pathname.endsWith('/gallery_items'))
         return route.fulfill(
           liveCatalog
@@ -166,12 +173,28 @@ try {
   assert.match(await page.locator('.subtotal').innerText(), /\$14/);
   await page
     .getByLabel('How would you like your drinks?')
-    .selectOption('Delivery');
-  const mailto = await page
-    .getByRole('link', { name: 'Prepare order email' })
-    .getAttribute('href');
-  assert.match(decodeURIComponent(mailto), /Preferred fulfillment: Delivery/);
-  assert.match(decodeURIComponent(mailto), /2 × Ginger Hibiscus/);
+    .selectOption('delivery');
+  await page.getByLabel('Receipt email').fill('buyer@example.com');
+  await page
+    .getByRole('button', { name: /Pay securely with Stripe/ })
+    .waitFor();
+  await capture(page, '/tmp/deezobo-qa/cart-checkout.png');
+  assert.equal(
+    await page.getByRole('link', { name: 'Prepare order email' }).count(),
+    0,
+  );
+  if (backend) {
+    await page.goto(
+      base + '/cart?checkout=success&session_id=cs_test_example',
+      {
+        waitUntil: 'networkidle',
+      },
+    );
+    await page.getByText('Payment received.', { exact: false }).waitFor();
+    await page
+      .getByRole('heading', { name: 'Something delicious belongs here.' })
+      .waitFor();
+  }
 
   await page.goto(base + '/gallery', { waitUntil: 'networkidle' });
   await page.locator('.gallery-tile').first().click();
@@ -314,6 +337,10 @@ try {
       .getByRole('button', { name: 'Save image', exact: true })
       .click();
     await manager.getByText('Saved successfully.', { exact: true }).waitFor();
+    await manager.getByRole('button', { name: 'Orders', exact: true }).click();
+    await manager
+      .getByText('No Stripe orders have been created yet.')
+      .waitFor();
     await manager.screenshot({
       path: '/tmp/deezobo-qa/admin-desktop.png',
       fullPage: true,
@@ -322,7 +349,7 @@ try {
   }
   assert.deepEqual(errors, []);
   console.log(
-    'PASS: menu search/filter, product selection, basket persistence, order email, gallery keyboard/focus, About redirect, account/admin guards, admin add/edit, mobile navigation, images and overflow.',
+    'PASS: menu search/filter, Stripe cart and verified return, basket persistence, gallery keyboard/focus, About redirect, account/admin guards, admin catalog and orders, mobile navigation, images and overflow.',
   );
 } finally {
   await browser.close();

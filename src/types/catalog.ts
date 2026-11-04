@@ -29,3 +29,31 @@ export interface BasketItem {
   optionId: string;
   quantity: number;
 }
+
+export type OrderStatus =
+  | 'pending_checkout'
+  | 'pending_payment'
+  | 'paid'
+  | 'payment_failed'
+  | 'expired'
+  | 'refunded';
+export interface OrderItem {
+  id: number;
+  productName: string;
+  optionLabel: string;
+  unitPriceMinor: number;
+  quantity: number;
+  lineTotalMinor: number;
+}
+export interface Order {
+  id: string;
+  customerEmail: string;
+  fulfillmentMethod: 'pickup' | 'delivery' | 'event';
+  status: OrderStatus;
+  currency: 'usd';
+  itemSubtotalMinor: number;
+  amountTotalMinor: number | null;
+  createdAt: string;
+  paidAt: string | null;
+  items: OrderItem[];
+}

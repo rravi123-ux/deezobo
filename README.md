@@ -29,7 +29,7 @@ variable names, without credentials.
 | /gallery | Filter images and open accessible image previews                |
 | /about   | Ruth's story, mission and values (replaces Newsletter)          |
 | /contact | Contact channels and event/general email draft form             |
-| /cart    | Locally saved selection and an order-request email draft        |
+| /cart    | Locally saved selection and Stripe-hosted secure checkout       |
 | /login   | Google sign-in for customers and authorized administrators      |
 | /admin   | Protected drink, gallery, and image-upload manager              |
 | /account | Signed-in customer account links                                |
@@ -39,20 +39,23 @@ Compatibility routes: `/products` → `/order`, `/contacts` → `/contact`,
 
 ## Boundaries
 
-- No payment or order is created by the website yet. Email drafts must be sent
-  in the user's email app. Final price, availability, and fulfillment are
-  confirmed directly by Ruth.
+- Stripe Checkout is created by Supabase Edge Functions using current database
+  prices. The browser never receives Stripe secret keys or marks an order paid.
+- Stripe emails successful live-payment receipts to the checkout email. Signed
+  webhooks reconcile order status in Supabase.
 - Admin permissions are enforced by RLS and a protected role table. A successful
   Google sign-in does not make an ordinary customer an admin.
 - Supabase migrations are supplied in the repository; follow the setup guide to
   apply them to the target project.
 - Images are extracted from the supplied brochure. Unknown nutrition/allergen
   data, supermarket locations and delivery promises are not invented.
-- Online ordering, promotions, delivery pricing, taxes, and automated fulfillment
-  remain future work.
+- Checkout currently charges the catalog item subtotal. Promotions, delivery
+  pricing, taxes, and automated fulfillment remain future work.
 
 See [adaptation map and content sources](docs/fwwill-adaptation.md),
 [database scope](docs/schema.md) and [remaining requirements](docs/requirements.md).
+For payment deployment, secrets, webhooks, testing, and live-mode activation,
+follow [Stripe setup](docs/stripe-setup.md).
 
 ## Checks
 

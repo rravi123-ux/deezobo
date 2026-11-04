@@ -11,7 +11,8 @@ still be applied to the target services.
    `supabase/migrations/202610010001_catalog_admin.sql`, followed by
    `202610010002_brochure_catalog.sql` and
    `202610140001_catalog_deletion.sql` and
-   `202610140002_catalog_storage.sql` in order using the Supabase SQL editor.
+   `202610140002_catalog_storage.sql` and
+   `202611030001_stripe_orders.sql` in order using the Supabase SQL editor.
    If `products`, `gallery_items`, or `user_roles` already exist, reconcile them
    with this migration rather than dropping existing data.
 3. Enable Google under Supabase Authentication > Providers. Configure the Google
@@ -44,9 +45,10 @@ Images can be unpublished and products made inactive or deleted. Uploaded files
 stay in the media bucket if a catalog row is deleted so another row using the same
 URL is not broken; remove unused files separately in Supabase Storage.
 
-The cart is stored locally by stable product/size IDs and prepares an email draft
-for the customer to send. It does not create an order or collect payment. The
-contact form also prepares an email draft and does not claim that a message was sent.
+The cart is stored locally by stable product/size IDs. Stripe Checkout is created
+server-side after re-reading current prices, and signed Stripe events update the
+protected order tables. See [Stripe setup](stripe-setup.md). The contact form
+still prepares an email draft and does not claim that a message was sent.
 
 Setup references: [Google sign-in](https://supabase.com/docs/guides/auth/social-login/auth-google)
 and [row-level security](https://supabase.com/docs/guides/database/postgres/row-level-security).

@@ -69,6 +69,15 @@ test('migrations seed the menu and enforce admin permissions in PostgreSQL', asy
         'utf8',
       ),
     );
+    await db.exec(
+      await readFile(
+        new URL(
+          '../supabase/migrations/202611030001_stripe_orders.sql',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
     await db.exec(`
       insert into public.user_roles values ('11111111-1111-4111-8111-111111111111', 'owner', true);
       insert into public.products(id,name,category,description,image_url,image_alt,active)
@@ -99,6 +108,12 @@ test('migrations seed the menu and enforce admin permissions in PostgreSQL', asy
       ),
     );
     await assert.rejects(db.query('select * from public.user_roles'));
+    await assert.rejects(db.query('select * from public.orders'));
+    await assert.rejects(
+      db.query(
+        "insert into public.orders(customer_email,fulfillment_method,item_subtotal_minor) values('attacker@example.com','pickup',500)",
+      ),
+    );
     await assert.rejects(
       db.query(
         "update public.products set name = 'Hacked' where id = 'ginger-hibiscus'",
@@ -145,6 +160,41 @@ test('migrations seed the menu and enforce admin permissions in PostgreSQL', asy
           "insert into storage.objects(bucket_id,name,owner_id) values('catalog-media','gallery/admin.jpg','11111111-1111-4111-8111-111111111111') returning name",
         )
       ).rows.length,
+      1,
+    );
+    await db.exec(`
+      reset role;
+      insert into public.orders(
+        id, auth_user_id, customer_email, fulfillment_method,
+        status, item_subtotal_minor, amount_total_minor
+      ) values (
+        '33333333-3333-4333-8333-333333333333',
+        '22222222-2222-4222-8222-222222222222',
+        'customer@example.com', 'pickup', 'paid', 500, 500
+      );
+      insert into public.order_items(
+        order_id, product_id, option_id, product_name, option_label,
+        unit_price_minor, quantity, line_total_minor
+      ) values (
+        '33333333-3333-4333-8333-333333333333',
+        'ginger-hibiscus', '8oz', 'Ginger Hibiscus', '8 oz bottle', 500, 1, 500
+      );
+      set role authenticated;
+      set request.jwt.claim.sub = '22222222-2222-4222-8222-222222222222';
+    `);
+    assert.equal(
+      (await db.query('select * from public.orders')).rows.length,
+      1,
+    );
+    assert.equal(
+      (await db.query('select * from public.order_items')).rows.length,
+      1,
+    );
+    await db.exec(
+      "set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';",
+    );
+    assert.equal(
+      (await db.query('select * from public.orders')).rows.length,
       1,
     );
     assert.equal(
