@@ -1,16 +1,34 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import type { FormEvent } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import PageHeading from '../components/common/PageHeading';
 import { useCart } from '../context/CartContext';
 import { useCatalog } from '../context/CatalogContext';
-import { emailDraft, money } from '../lib/catalog';
-import { site } from '../data/site';
+import { useAuth } from '../context/AuthContext';
+import { money } from '../lib/catalog';
+import {
+  checkoutConfigured,
+  createCheckout,
+  getCheckoutState,
+} from '../services/checkout';
+import type { FulfillmentMethod } from '../services/checkout';
 
 export default function CartPage() {
-  const { items, update, remove } = useCart();
+  const { items, update, remove, clear } = useCart();
   const { products } = useCatalog();
-  const [method, setMethod] = useState('Pickup');
-  const [prepared, setPrepared] = useState(false);
+  const { session } = useAuth();
+  const [searchParams] = useSearchParams();
+  const checkoutParam = searchParams.get('checkout');
+  const checkoutSessionId = searchParams.get('session_id');
+  const [method, setMethod] = useState<FulfillmentMethod>('pickup');
+  const [email, setEmail] = useState(session?.user.email ?? '');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [checkoutMessage, setCheckoutMessage] = useState(() =>
+    checkoutParam === 'canceled'
+      ? 'Payment was canceled. Your selection is still here.'
+      : '',
+  );
   const rows = items.map((item) => {
     const product = products.find((p) => p.id === item.productId && p.active);
     return {
@@ -24,37 +42,83 @@ export default function CartPage() {
     0,
   );
   const unavailable = rows.some((r) => !r.product || !r.option);
-  const body = [
-    'Hello Dee Zobo, I would like to request:',
-    '',
-    ...rows
-      .filter((r) => r.product && r.option)
-      .map(
-        ({ item, product, option }) =>
-          item.quantity +
-          ' × ' +
-          product!.name +
-          ' — ' +
-          option!.label +
-          ' (' +
-          money(option!.priceMinor * item.quantity) +
-          ')',
-      ),
-    '',
-    'Listed item subtotal: ' + money(total),
-    'Preferred fulfillment: ' + method,
-    'Preferred date: ',
-    '',
-    'Please confirm availability, delivery/pickup arrangements, and final pricing.',
-  ].join('\n');
-  const draft = emailDraft(site.email, 'My Dee Zobo selection', body);
+  useEffect(() => {
+    if (!email && session?.user.email) setEmail(session.user.email);
+  }, [email, session?.user.email]);
+
+  useEffect(() => {
+    if (checkoutParam !== 'success' || !checkoutSessionId) return;
+    let active = true;
+    setCheckoutMessage('Verifying your payment with Stripe…');
+    void getCheckoutState(checkoutSessionId)
+      .then((state) => {
+        if (!active) return;
+        if (state === 'paid') {
+          clear();
+          setCheckoutMessage(
+            'Payment received. Stripe has sent a receipt to your checkout email.',
+          );
+        } else if (state === 'processing') {
+          setCheckoutMessage(
+            'Your payment is processing. Stripe will email your receipt after it succeeds.',
+          );
+        } else {
+          setCheckoutMessage(
+            'Payment is not complete. Your selection has been preserved.',
+          );
+        }
+      })
+      .catch((reason: unknown) => {
+        if (active)
+          setError(
+            reason instanceof Error
+              ? reason.message
+              : 'Payment status could not be verified.',
+          );
+      });
+    return () => {
+      active = false;
+    };
+  }, [checkoutParam, checkoutSessionId, clear]);
+
+  async function pay(event: FormEvent) {
+    event.preventDefault();
+    setError('');
+    setCheckoutMessage('');
+    setBusy(true);
+    try {
+      const url = await createCheckout({
+        items,
+        email,
+        fulfillmentMethod: method,
+      });
+      window.location.assign(url);
+    } catch (reason) {
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : 'Stripe Checkout could not be started.',
+      );
+      setBusy(false);
+    }
+  }
   return (
     <div className="page-shell page-width">
       <PageHeading
         eyebrow="A taste of what’s to come"
         title="Your selection."
-        description="Collect your favorites, then send Ruth an order request. Availability, fulfillment, and final pricing are confirmed directly."
+        description="Review your drinks, choose fulfillment, and pay securely through Stripe."
       />
+      {checkoutMessage && (
+        <p className="success" role="status">
+          {checkoutMessage}
+        </p>
+      )}
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
       {!items.length ? (
         <div className="empty-state">
           <h2>Something delicious belongs here.</h2>
@@ -85,7 +149,7 @@ export default function CartPage() {
                     className="text-link"
                     onClick={() => {
                       remove(item.productId, item.optionId);
-                      setPrepared(false);
+                      setCheckoutMessage('');
                     }}
                   >
                     Remove
@@ -110,7 +174,7 @@ export default function CartPage() {
                         item.optionId,
                         e.target.valueAsNumber,
                       );
-                      setPrepared(false);
+                      setCheckoutMessage('');
                     }}
                   />
                   <strong>
@@ -125,7 +189,10 @@ export default function CartPage() {
               ← Keep exploring
             </Link>
           </div>
-          <aside className="basket-summary">
+          <form
+            className="basket-summary"
+            onSubmit={(event) => void pay(event)}
+          >
             <p className="eyebrow">The details</p>
             <h2>Make it yours</h2>
             <div className="subtotal">
@@ -133,46 +200,58 @@ export default function CartPage() {
               <strong>{money(total)}</strong>
             </div>
             <p className="fine-print">
-              Listed menu prices in USD. Delivery, tax, custom requests, and any
-              applicable offers will be confirmed in your quote.
+              Checkout charges the listed item subtotal in USD. Any separately
+              arranged delivery or event fee is not included here.
             </p>
+            <label htmlFor="receipt-email">Receipt email</label>
+            <input
+              id="receipt-email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="you@example.com"
+            />
             <label htmlFor="fulfillment">How would you like your drinks?</label>
             <select
               id="fulfillment"
               value={method}
-              onChange={(e) => {
-                setMethod(e.target.value);
-                setPrepared(false);
+              onChange={(event) => {
+                setMethod(event.target.value as FulfillmentMethod);
+                setCheckoutMessage('');
               }}
             >
-              <option>Pickup</option>
-              <option>Delivery</option>
-              <option>At an event</option>
+              <option value="pickup">Pickup</option>
+              <option value="delivery">Delivery</option>
+              <option value="event">At an event</option>
             </select>
             {unavailable ? (
               <p role="alert" className="error">
                 Remove unavailable items before preparing your request.
               </p>
             ) : (
-              <a
-                href={draft}
+              <button
+                type="submit"
                 className="button full-width"
-                onClick={() => setPrepared(true)}
+                disabled={busy || !checkoutConfigured}
               >
-                Prepare order email ↗
-              </a>
+                {busy
+                  ? 'Opening secure checkout…'
+                  : 'Pay securely with Stripe ↗'}
+              </button>
             )}
             <p className="fine-print">
-              This opens your email app. Send the draft there to request your
-              order. No payment is collected on this website.
+              Stripe handles your card details. Dee Zobo does not receive your
+              full card number. A receipt is emailed after a successful live
+              payment.
             </p>
-            {prepared && (
-              <p role="status" className="success">
-                Your draft is ready to send in your email app. This is not an
-                order confirmation.
+            {!checkoutConfigured && (
+              <p role="alert" className="notice">
+                Online checkout is waiting for the Supabase project connection.
               </p>
             )}
-          </aside>
+          </form>
         </div>
       )}
     </div>

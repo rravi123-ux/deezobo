@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import type { ReactNode } from 'react';
 import type { BasketItem } from '../types/catalog';
 import { parseBasket, validQuantity } from '../lib/catalog';
@@ -10,6 +16,7 @@ type Cart = {
   add: (item: BasketItem) => void;
   update: (productId: string, optionId: string, quantity: number) => void;
   remove: (productId: string, optionId: string) => void;
+  clear: () => void;
 };
 const CartContext = createContext<Cart | null>(null);
 export function CartProvider({ children }: { children: ReactNode }) {
@@ -58,6 +65,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         : [...prev, item];
     });
   };
+  const clear = useCallback(() => setItems([]), []);
   return (
     <CartContext.Provider
       value={{
@@ -66,6 +74,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         add,
         update,
         remove,
+        clear,
       }}
     >
       {children}

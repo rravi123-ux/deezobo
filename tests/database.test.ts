@@ -182,7 +182,10 @@ test('migrations seed the menu and enforce admin permissions in PostgreSQL', asy
       set role authenticated;
       set request.jwt.claim.sub = '22222222-2222-4222-8222-222222222222';
     `);
-    assert.equal((await db.query('select * from public.orders')).rows.length, 1);
+    assert.equal(
+      (await db.query('select * from public.orders')).rows.length,
+      1,
+    );
     assert.equal(
       (await db.query('select * from public.order_items')).rows.length,
       1,
@@ -190,7 +193,10 @@ test('migrations seed the menu and enforce admin permissions in PostgreSQL', asy
     await db.exec(
       "set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';",
     );
-    assert.equal((await db.query('select * from public.orders')).rows.length, 1);
+    assert.equal(
+      (await db.query('select * from public.orders')).rows.length,
+      1,
+    );
     assert.equal(
       (await db.query('select * from public.products')).rows.length,
       8,

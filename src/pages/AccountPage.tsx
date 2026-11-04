@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import PageHeading from '../components/common/PageHeading';
 import { useAuth } from '../context/AuthContext';
 import { signOut } from '../services/auth';
+import OrderHistory from '../components/account/OrderHistory';
 
 export default function AccountPage() {
   const { session, isAdmin } = useAuth();
@@ -31,6 +32,7 @@ export default function AccountPage() {
           Sign out
         </button>
       </div>
+      <OrderHistory />
     </div>
   );
 }

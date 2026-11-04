@@ -893,6 +893,65 @@ fieldset {
 .notice {
   background: #eee7d6;
 }
+.order-list {
+  display: grid;
+  gap: 20px;
+  margin-top: 45px;
+}
+.order-card {
+  background: #fffdf8;
+  border: 1px solid var(--line);
+  padding: 24px;
+}
+.order-card-heading,
+.order-total,
+.order-card li {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: baseline;
+}
+.order-card-heading > div {
+  display: grid;
+  gap: 5px;
+}
+.order-card-heading span,
+.order-total span {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+.order-card ul {
+  list-style: none;
+  margin: 22px 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.order-card li {
+  font-size: 0.82rem;
+}
+.order-total {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.status-badge {
+  display: inline-block;
+  padding: 6px 9px;
+  background: #eee7d6;
+  color: var(--wine) !important;
+  font-size: 0.65rem !important;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+.status-paid {
+  background: #e8edde;
+  color: #25442a !important;
+}
+.status-payment_failed,
+.status-expired {
+  background: #f8e4e1;
+  color: #7c2525 !important;
+}
 .admin-link {
   margin-top: 18px;
 }

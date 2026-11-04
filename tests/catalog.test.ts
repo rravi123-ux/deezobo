@@ -8,6 +8,7 @@ import {
   validQuantity,
   isAdminRole,
   safeImageUrl,
+  isStripeCheckoutUrl,
 } from '../src/lib/catalog.ts';
 import { brochureProducts } from '../src/data/products.ts';
 
@@ -91,4 +92,19 @@ test('image fields reject active or insecure URLs', () => {
     '/images/../.env',
   ])
     assert.equal(safeImageUrl(v), false);
+});
+
+test('checkout redirects accept only Stripe hosted payment URLs', () => {
+  assert.equal(
+    isStripeCheckoutUrl('https://checkout.stripe.com/c/pay/cs_test_example'),
+    true,
+  );
+  for (const value of [
+    'http://checkout.stripe.com/c/pay/test',
+    'https://checkout.stripe.com.example.com/c/pay/test',
+    'https://example.com/checkout',
+    'javascript:alert(1)',
+    null,
+  ])
+    assert.equal(isStripeCheckoutUrl(value), false);
 });
